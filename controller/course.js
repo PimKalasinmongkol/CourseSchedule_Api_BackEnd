@@ -17,14 +17,13 @@ router.get("/getAllCourses", async (request, response) => {
 });
 
 router.post("/importCourse", async (request, response) => {
-    const { subject_name, credit ,type ,school_year } = request.body;
-
+    const { subject_real_id, subject_thai_name ,subject_eng_name, credit ,school_year } = request.body;
     try {
-        const query = await pool.query("INSERT INTO mykusubjecttable (subject_name, credit, enable ,type, school_year) VALUES (?, ? ,0 ,? ,?)",[subject_name, credit,type ,school_year]);
+        const query = await pool.query("INSERT INTO mykusubjecttable (subject_real_id ,subject_thai_name ,subject_eng_name, credit, enable , school_year) VALUES (? ,? ,? ,? ,0 ,?)",[subject_real_id ,subject_thai_name ,subject_eng_name, credit,school_year]);
         const result = await query[0]
         response.json({
             status: 'success',
-            data: result[0]
+            data: result
         })
     } catch (error) {
         console.error(error);
@@ -69,7 +68,6 @@ router.post('/editCourse' ,async (request ,response) => {
 
 router.get('/deleteCourse/:subject_id', async (request, response) => {
     const {subject_id} = request.params.subject_id;
-    
     try {
         const query = await pool.query("DELETE mykusubjecttable WHERE subject_id = ?",[subject_id])
         const result = await query[0]

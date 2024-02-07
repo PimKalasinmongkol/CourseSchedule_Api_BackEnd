@@ -7,7 +7,6 @@ const port = process.env.PORT;
 
 // import controller
 const user = require('./controller/user')
-const teacher = require('./controller/teacher')
 const course = require('./controller/course')
 const admin = require('./controller/admin')
 
@@ -26,23 +25,22 @@ const apiKeyMiddleWare = (request ,response ,next) => {
 // set up middleware
 app.use(express.json());
 app.use(express.urlencoded({
-    extended: true,
+    extended: false,
 }))
 app.use(cors());
 app.use(morgan('dev'));
 
 // use route controller
 app.use('/user' ,user)
-app.use('/teacher', teacher)
 app.use('/course', course)
 app.use('/admin' ,admin)
 
 // test server
 app.get('/', (request ,response) => {
-    response.send("<h1 style='font-size: 100px'>Server has ready</h1>")
+    response.send("<marquee style='font-size: 30px'>200 OK \nServer is listening on http://localhost:4000</marquee>")
 })
 
 // start server
 app.listen(port ,() => {
-    console.log(`----\nRunning on port ${port}\n----`);
+    console.log(`[server]: Server is listening on http://localhost:${port}`);
 });
