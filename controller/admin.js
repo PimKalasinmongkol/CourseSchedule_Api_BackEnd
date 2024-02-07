@@ -37,7 +37,7 @@ router.get('/deleteAnnouncement/:announce_id', async(request ,response) => {
     const announce_text = request.params.announce_id
     
     try {
-        const query = await pool.query("DELETE FROM mykuannouncementtable WHERE announcement_id = ?" ,[announcement_id])
+        const query = await pool.query("DELETE FROM mykuannouncementtable WHERE announce_id = ?" ,[announce_text])
         const result = await query[0]
         response.json({
             status: 'success',
