@@ -16,15 +16,6 @@ router.get('/getAllUser' ,async(request ,response) => {
     }
 })
 
-router.post('/addUser', async(request ,response) => {
-    const {} = request.body
-    try {
-        const query = await pool.query('INSERT INTO mykuusertable () VALUES ()')
-    } catch (error) {
-        
-    }
-})
-
 router.post('/register' ,async(request ,response) => {
     const {name ,lastname ,email ,password} = request.body
     try {
