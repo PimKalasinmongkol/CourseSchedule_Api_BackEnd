@@ -17,9 +17,9 @@ router.get("/getAllCourses", async (request, response) => {
 });
 
 router.post("/importCourse", async (request, response) => {
-    const { subject_real_id, subject_thai_name ,subject_eng_name, credit ,type ,school_year } = request.body;
+    const { subject_id, subject_nameEN ,subject_nameTH, credit ,type ,school_year } = request.body;
     try {
-        const query = await pool.query("INSERT INTO mykusubjecttable (subject_real_id ,subject_thai_name ,subject_eng_name, credit, enable ,type , school_year) VALUES (? ,? ,? ,? ,0 ,? ,?)",[subject_real_id ,subject_thai_name ,subject_eng_name, credit , type ,school_year]);
+        const query = await pool.query("INSERT INTO mykusubjecttable (subject_id ,subject_nameEN ,subject_nameTH, credit, enable ,type , school_year) VALUES (? ,? ,? ,? ,0 ,? ,?)",[subject_id ,subject_nameEN ,subject_nameTH, credit , type ,school_year]);
         const result = await query[0]
         response.json({
             status: 'success',
