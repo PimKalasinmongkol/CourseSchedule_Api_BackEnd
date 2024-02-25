@@ -19,7 +19,7 @@ router.get("/getAllRoom", async (request, response) => {
 router.post("/importRoom", async (request, response) => {
     const { room_number, room_seat  } = request.body;
     try {
-        const query = await pool.query("INSERT INTO mykuroomtable (room_number ,room_seat ,room_isFull) VALUES (? ,? ,0 )",[room_number ,room_seat ]);
+        const query = await pool.query("INSERT INTO mykuroomtable (room_number ,room_seat  ,room_isFull) VALUES (?, ? ,0)",[room_number ,room_seat]);
         const result = await query[0]
         response.json({
             status: 'success',

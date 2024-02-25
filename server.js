@@ -9,6 +9,7 @@ const port = process.env.PORT;
 const user = require('./controller/user')
 const course = require('./controller/course')
 const admin = require('./controller/admin')
+const room = require('./controller/room')
 
 /* const validApiKey = new Set([
     'course-ku-66'
@@ -34,6 +35,7 @@ app.use(morgan('dev'));
 app.use('/user' ,user)
 app.use('/course', course)
 app.use('/admin' ,admin)
+app.use('/room',room)
 
 // test server
 app.get('/', (request ,response) => {
