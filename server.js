@@ -11,6 +11,7 @@ const course = require('./controller/course')
 const admin = require('./controller/admin')
 const room = require('./controller/room')
 
+
 /* const validApiKey = new Set([
     'course-ku-66'
 ])
@@ -29,13 +30,14 @@ app.use(express.urlencoded({
     extended: false,
 }))
 app.use(cors());
-app.use(morgan('dev'));
+app.use(morgan('dev'))
 
 // use route controller
 app.use('/user' ,user)
 app.use('/course', course)
 app.use('/admin' ,admin)
 app.use('/room',room)
+
 
 // test server
 app.get('/', (request ,response) => {
