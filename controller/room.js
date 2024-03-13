@@ -67,7 +67,7 @@ router.post('/importRoom', async(request ,response) => {
 router.post("/importFromExcelroom", async (req, res) => {
     try {
       const { room_number,
-          room_seat,
+            room_seat,
            } = req.body;
   
       // Loop through each item in formDataWithYear and insert it into the database

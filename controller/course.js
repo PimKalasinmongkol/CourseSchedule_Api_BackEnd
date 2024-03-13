@@ -75,26 +75,36 @@ router.post("/importCourse", async (request, response) => {
   }
 });
 
-const checkisEnable = (subject_id) => {
-    
-}
 
-router.post("/isEnableCourse/:subject_id", async (request, response) => {
-    const subject_id = request.params.subject_id
-    try {
-        const query = await pool.query(
-        "UPDATE mykusubjecttable SET enable = ? WHERE subject_id = ?",
-        [enable, subject_name]
-        );
-        const result = await query[0];
-        response.json({
-        status: "success",
-        data: result,
-        });
-    } catch (error) {
-        console.error(error);
-        response.json({ status: "error", message: error });
-    }
+router.post("/isEnableCourse/:id", async(request, response) => {
+  const subject_id = request.params.id
+  let enable_state = null;
+
+  // check this course is enabled ,if enabled then swap the boolean
+  try {
+      const query = await pool.query('SELECT * FROM mykusubjecttable WHERE subject_id = ?',[subject_id])
+      const result = await query[0]
+      let enable_state_result = result.map((row) => {
+          return row.enable
+      })
+      console.log("debug 1:"+enable_state);
+      enable_state = enable_state_result == 1 ? 0 : 1
+  } catch (error) {
+      console.error(`Database query error: ${error}`);
+  }
+
+  // update enable state to subject
+  try {
+      const query = await pool.query("UPDATE mykusubjecttable SET enable = ? WHERE subject_id = ?",[enable_state ,subject_id])
+      const result = await query[0]
+      response.json({
+          status: 'success',
+          data: result
+      })
+  } catch (error) {
+      console.error(error);
+      response.json({status: 'error', message: error});
+  }
 });
 
 router.post("/editCourse", async (request, response) => {
