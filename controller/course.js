@@ -167,4 +167,85 @@ router.get('/deleteCourse/:subject_id', async (request, response) => {
   }
 })
 
+
+// check course collision 
+const scheduleCourseCollisions = async(subject_id ,start_time ,end_time ,date) => {
+  try {
+      const all_course = await pool.query('SELECT * FROM mykusumtable')
+      const data = await all_course[0]
+      const collisionFound = data.some(item => {
+          if (item.date === date) {
+              if ((start_time >= item.start_time && end_time <= item.end_time) ||
+                  (start_time <= item.start_time && end_time >= item.start_time)) {
+                  return true; // Collision found
+              }
+          }
+          return false; // No collision
+      });
+      return collisionFound;
+  } catch (error) {
+      console.error(`Database query error: ${error}`);
+  }
+}
+
+// booking Course
+router.post('/BookingCourseToMain/:subject_id', async (request, response) => {
+  const {
+      subject_id,
+      subject_nameEN,
+      subject_nameTH,
+      start_time,
+      end_time,
+      Day,
+      section,
+      major_year,
+      student_count,
+      credit,
+      type,
+      enable,
+      school_year,
+      room,
+      lecturer
+  } = request.body
+  
+  try {
+      const query = await pool.query('INSERT INTO `mykusumtable`(`id`, `subject_id`, `subject_nameEN`, `subject_nameTH`, `start_time`, `end_time`, `Day`, `section`, `major_year`, `student_count`, `credit`, `type`, `enable`, `school_year`, `room`, `lecturer`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[
+          subject_id,
+          subject_nameEN,
+          subject_nameTH,
+          start_time,
+          end_time,
+          Day,
+          section,
+          major_year,
+          student_count,
+          credit,
+          type,
+          enable,
+          school_year,
+          room,
+          lecturer
+      ])
+      const result = await query[0]
+      if (scheduleCourseCollisions(subject_id ,start_time ,end_time ,date)) {
+          response.json({
+              status: 'Booking course successfully',
+              data: result,
+              isCollision: true
+          })
+      } else {
+          response.json({
+              status: 'Booking course successfully',
+              data: result,
+              isCollision: false
+          })
+      }
+  } catch (error) {
+      console.error(error);
+      response.json({
+          status: `Database query error: ${error}`,
+      })
+  }
+})
+
 module.exports = router;

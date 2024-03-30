@@ -57,6 +57,7 @@ router.post('/login' ,async(request ,response) => {
         const query = await pool.query("SELECT * FROM mykuusertable WHERE email = ?",[email])
         if (query[0].length > 0) {
             Session_ = query[0][0].email
+            console.log(Session_);
             response.json({
                 status: 'success',
                 rows: query[0]
