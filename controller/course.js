@@ -6,23 +6,26 @@ const pool = require("../databases/db");
 router.post("/importFromExcel", async (req, res) => {
   try {
     const { subject_id,
-        subject_nameEN,
-        subject_nameTH,
-        credit,
-        type,
-        school_year } = req.body;
+      subject_nameEN,
+      subject_nameTH,
+      credit,
+      type,
+      group,
+      school_year } = req.body;
 
     // Loop through each item in formDataWithYear and insert it into the database
     const enableData = 0;
-    await pool.query('INSERT INTO mykusubjecttable (subject_id, subject_nameEN, subject_nameTH, credit, enable, type, school_year) VALUES (?, ?, ?, ?, ?, ?, ?)', [ 
-    subject_id,
-    subject_nameEN,
-    subject_nameTH,
-    credit,
-    enableData,
-    type,
-    school_year,
+    await pool.query('INSERT INTO mykusubjecttable (subject_id, subject_nameEN, subject_nameTH, credit, enable, type, `group`, school_year) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
+      subject_id,
+      subject_nameEN,
+      subject_nameTH,
+      credit,
+      enableData,
+      type,
+      group,
+      school_year,
     ]);
+
 
     // Send a success response
     res.status(200).json({ message: "Data inserted successfully" });
@@ -47,6 +50,20 @@ router.get("/getAllCourses", async (request, response) => {
   }
 });
 
+router.get("/getAllCoursesformsum", async (request, response) => {
+  try {
+    const query = await pool.query("SELECT * FROM mykusumtable");
+    const rows = await query[0];
+    response.json(rows);
+  } catch (error) {
+    console.error(error);
+    response.json({
+      status: "error",
+      message: error,
+    });
+  }
+});
+
 router.post("/importCourse", async (request, response) => {
   const {
     subject_id,
@@ -54,12 +71,13 @@ router.post("/importCourse", async (request, response) => {
     subject_nameTH,
     credit,
     type,
+    group,
     school_year,
   } = request.body;
   try {
     const query = await pool.query(
-      "INSERT INTO mykusubjecttable (subject_id ,subject_nameEN ,subject_nameTH, credit, enable ,type , school_year) VALUES (? ,? ,? ,? ,0 ,? ,?)",
-      [subject_id, subject_nameEN, subject_nameTH, credit, type, school_year]
+      "INSERT INTO mykusubjecttable (subject_id ,subject_nameEN ,subject_nameTH, credit, enable ,type ,`group` ,school_year) VALUES (? ,? ,? ,? ,0 ,? ,? ,?)",
+      [subject_id, subject_nameEN, subject_nameTH, credit, type, group, school_year]
     );
     const result = await query[0];
     response.json({
@@ -76,36 +94,44 @@ router.post("/importCourse", async (request, response) => {
 });
 
 
-router.post("/isEnableCourse/:id", async(request, response) => {
-  const subject_id = request.params.id
-  let enable_state = null;
 
-  // check this course is enabled ,if enabled then swap the boolean
+router.get("/getDistinctYears", async (req, res) => {
   try {
-      const query = await pool.query('SELECT * FROM mykusubjecttable WHERE subject_id = ?',[subject_id])
-      const result = await query[0]
-      let enable_state_result = result.map((row) => {
-          return row.enable
-      })
-      console.log("debug 1:"+enable_state);
-      enable_state = enable_state_result == 1 ? 0 : 1
-  } catch (error) {
-      console.error(`Database query error: ${error}`);
-  }
+    // Query distinct years from the database and arrange them from least to greatest
+    const query = await pool.query("SELECT DISTINCT school_year FROM mykusubjecttable ORDER BY school_year ASC");
+    const rows = await query[0];
 
-  // update enable state to subject
-  try {
-      const query = await pool.query("UPDATE mykusubjecttable SET enable = ? WHERE subject_id = ?",[enable_state ,subject_id])
-      const result = await query[0]
-      response.json({
-          status: 'success',
-          data: result
-      })
+    // Extract years from the result
+    const distinctYears = rows.map((row) => row.school_year);
+
+    // Send the distinct years as response
+    res.status(200).json(distinctYears);
   } catch (error) {
-      console.error(error);
-      response.json({status: 'error', message: error});
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// Backend code
+router.post("/isEnableCourse/:id", async (request, response) => {
+  const subject_id = request.params.id;
+  const { enable_state } = request.body; // Get enable_state from request body
+
+  try {
+    // Update the enable state of the course in the database
+    await pool.query("UPDATE mykusubjecttable SET enable = ? WHERE subject_id = ?", [enable_state, subject_id]);
+    // Optionally, send a response
+    response.json({
+      status: 'success',
+      message: 'Enable state updated successfully'
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    response.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+
 
 router.post("/editCourse", async (request, response) => {
   const { subject_id, subject_name, credit, type, school_year } = request.body;
@@ -127,18 +153,18 @@ router.post("/editCourse", async (request, response) => {
 });
 
 router.get('/deleteCourse/:subject_id', async (request, response) => {
-    const subject_id = request.params.subject_id;
-    try {
-        const query = await pool.query("DELETE FROM mykusubjecttable WHERE subject_id = ?",[parseInt(subject_id)])
-        const result = await query[0]
-        response.json({
-            status: 'success',
-            result: result
-        })
-    } catch (error) {
-        console.error(error);
-        response.json({status: 'error', message: error});
-    }
+  const subject_id = request.params.subject_id;
+  try {
+    const query = await pool.query("DELETE FROM mykusubjecttable WHERE subject_id = ?", [parseInt(subject_id)])
+    const result = await query[0]
+    response.json({
+      status: 'success',
+      result: result
+    })
+  } catch (error) {
+    console.error(error);
+    response.json({ status: 'error', message: error });
+  }
 })
 
 module.exports = router;
