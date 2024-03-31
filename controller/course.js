@@ -64,6 +64,22 @@ router.get("/getAllCoursesformsum", async (request, response) => {
   }
 });
 
+router.get('/getCourse/:id', async (request, response) => {
+  const id = request.params.id;
+  try {
+    const query = await pool.query("SELECT * FROM mykusubjecttable WHERE subject_id = ?", [id])
+    const rows = await query[0]
+    response.json(rows);
+  } catch (error) {
+    console.error(error);
+    response.json({
+      status: 'error',
+      message: error
+    })
+  }
+})
+
+
 router.post("/importCourse", async (request, response) => {
   const {
     subject_id,
@@ -172,7 +188,7 @@ router.get('/deleteCourse/:subject_id', async (request, response) => {
 const scheduleCourseCollisions = async(subject_id ,start_time ,end_time ,date) => {
   try {
       const all_course = await pool.query('SELECT * FROM mykusumtable')
-      const data = await all_course[0]
+      const data = await all_course[0][0]
       const collisionFound = data.some(item => {
           if (item.date === date) {
               if ((start_time >= item.start_time && end_time <= item.end_time) ||

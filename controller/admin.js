@@ -2,8 +2,6 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../databases/db')
 
-var Session_ = true;
-
 router.post('/createAnnouncement', async(request ,response) => {
     const {announce_text} = request.body
     try {
@@ -86,7 +84,7 @@ router.get('/deleteUser/:id', async(request ,response) => {
     }
 })
 
-router.post('/SystemPermissions', async(request ,response) => {
+router.post('/setSystemPermissions', async(request ,response) => {
     let state = request.body.state ? 1 : 0
     try {
         const query = await pool.query("UPDATE system SET state_permission = ?",[state])

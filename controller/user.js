@@ -2,12 +2,13 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../databases/db')
 
-var Session_ = null
+var Session_ = null;
 
-router.get('/getAllUser' ,async(request ,response) => {
+router.get('/getUser' ,async(request ,response) => {
     try {
         const query = await pool.query("SELECT * FROM mykuusertable WHERE email = ?",[Session_])
         const rows = await query[0]
+        console.log(`User Session : ${Session_}`);
         response.json(rows)
     } catch (error) {
         console.error(error);
@@ -18,12 +19,11 @@ router.get('/getAllUser' ,async(request ,response) => {
     }
 })
 
-router.post('/getUser',async(request ,response) => {
-    const {email} = request.body
+router.get('/getAllUser' ,async(request ,response) => {
     try {
-        const query = await pool.query('SELECT * FROM mykuusertable WHERE email = ?',[email])
-        const result = await query[0]
-        response.json(result)
+        const query = await pool.query("SELECT * FROM mykuusertable")
+        const rows = await query[0]
+        response.json(rows)
     } catch (error) {
         console.error(error);
         response.json({
