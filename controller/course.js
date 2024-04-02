@@ -64,20 +64,6 @@ router.get("/getAllCoursesformsum", async (request, response) => {
   }
 });
 
-router.get('/getCourse/:id', async (request, response) => {
-  const id = request.params.id;
-  try {
-    const query = await pool.query("SELECT * FROM mykusubjecttable WHERE subject_id = ?", [id])
-    const rows = await query[0]
-    response.json(rows);
-  } catch (error) {
-    console.error(error);
-    response.json({
-      status: 'error',
-      message: error
-    })
-  }
-})
 
 
 router.post("/importCourse", async (request, response) => {
@@ -147,26 +133,71 @@ router.post("/isEnableCourse/:id", async (request, response) => {
   }
 });
 
+router.get('/getCourse/:id', async (request, response) => {
+  const id = request.params.id;
+  try {
+    const query = await pool.query("SELECT * FROM mykusubjecttable WHERE subject_id = ?", [id])
+    const rows = await query[0]
+    response.json(rows);
+  } catch (error) {
+    console.error(error);
+    response.json({
+      status: 'error',
+      message: error
+    })
+  }
+})
 
+router.get('/getCoursesformsum/:id', async (request, response) => {
+  const id = request.params.id;
+  try {
+    const query = await pool.query("SELECT * FROM mykusumtable WHERE id = ?", [id])
+    const rows = await query[0]
+    response.json(rows);
+  } catch (error) {
+    console.error(error);
+    response.json({
+      status: 'error',
+      message: error
+    })
+  }
+})
 
 router.post("/editCourse", async (request, response) => {
-  const { subject_id, subject_name, credit, type, school_year } = request.body;
+  const { subject_id, start_time, end_time, Day, room_number, section, student_count } = request.body;
+
+  console.log('editCourse running');
 
   try {
     const query = await pool.query(
-      "UPDATE mykusubjecttable SET subject_name = ?, credit = ? ,type = ? ,school_year = ? WHERE subject_id = ?",
-      [subject_id, subject_name, credit, type, school_year]
+      "UPDATE mykusumtable SET start_time = ?, end_time = ?, Day = ?, room_number = ?, section = ?, student_count=? WHERE id = ?",
+      [start_time, end_time, Day, room_number, section, student_count, subject_id]
     );
-    const result = await query[0];
-    response.json({
-      status: "success",
-      result: result,
-    });
+
+    // Handle success scenario
+    if (query.affectedRows === 1) {
+      console.log(`Course with subject_id: ${subject_id} successfully updated`);
+      response.json({
+        status: "success",
+        message: "Course details updated successfully",
+      });
+    } else {
+      console.warn(`No course found with subject_id: ${subject_id}`);
+      response.status(404).json({
+        status: "error",
+        message: "Course not found",
+      });
+    }
+
   } catch (error) {
-    console.error(error);
-    response.json({ status: "error", message: error });
+    console.error("Error updating course:", error);
+    response.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
   }
 });
+
 
 router.get('/deleteCourse/:subject_id', async (request, response) => {
   const subject_id = request.params.subject_id;
@@ -204,9 +235,31 @@ const scheduleCourseCollisions = async(subject_id ,start_time ,end_time ,date) =
   }
 }
 
+
 // booking Course
 router.post('/BookingCourseToMain/:subject_id', async (request, response) => {
   const {
+    subject_id,
+    subject_nameEN,
+    subject_nameTH,
+    start_time,
+    end_time,
+    Day,
+    section,
+    major_year,
+    student_count,
+    credit,
+    type,
+    enable,
+    school_year,
+    room_number,
+    room_seat,
+    lecturer,
+    group
+  } = request.body
+
+  try {
+    const query = await pool.query('INSERT INTO `mykusumtable`(`subject_id`, `subject_nameEN`, `subject_nameTH`, `start_time`, `end_time`, `Day`, `section`, `major_year`, `student_count`, `credit`, `type`, `enable`, `school_year`, `room_number`, `room_seat`, `lecturer`, `group`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [
       subject_id,
       subject_nameEN,
       subject_nameTH,
@@ -220,47 +273,30 @@ router.post('/BookingCourseToMain/:subject_id', async (request, response) => {
       type,
       enable,
       school_year,
-      room,
-      lecturer
-  } = request.body
-  
-  try {
-      const query = await pool.query('INSERT INTO `mykusumtable`(`id`, `subject_id`, `subject_nameEN`, `subject_nameTH`, `start_time`, `end_time`, `Day`, `section`, `major_year`, `student_count`, `credit`, `type`, `enable`, `school_year`, `room`, `lecturer`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[
-          subject_id,
-          subject_nameEN,
-          subject_nameTH,
-          start_time,
-          end_time,
-          Day,
-          section,
-          major_year,
-          student_count,
-          credit,
-          type,
-          enable,
-          school_year,
-          room,
-          lecturer
-      ])
-      const result = await query[0]
-      if (scheduleCourseCollisions(subject_id ,start_time ,end_time ,date)) {
-          response.json({
-              status: 'Booking course successfully',
-              data: result,
-              isCollision: true
-          })
-      } else {
-          response.json({
-              status: 'Booking course successfully',
-              data: result,
-              isCollision: false
-          })
-      }
-  } catch (error) {
-      console.error(error);
+      room_number,
+      room_seat,
+      lecturer,
+      group
+    ])
+    const result = await query[0]
+    if (scheduleCourseCollisions(subject_id, start_time, end_time, date)) {
       response.json({
-          status: `Database query error: ${error}`,
+        status: 'Booking course successfully',
+        data: result,
+        isCollision: true
       })
+    } else {
+      response.json({
+        status: 'Booking course successfully',
+        data: result,
+        isCollision: false
+      })
+    }
+  } catch (error) {
+    console.error(error);
+    response.json({
+      status: `Database query error: ${error}`,
+    })
   }
 })
 
